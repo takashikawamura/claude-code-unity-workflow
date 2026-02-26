@@ -9,24 +9,33 @@
 
 | ツール | 役割 |
 |---|---|
-| **ClaudeCode** | AI コーディングアシスタント（メイン） |
+| **ClaudeCode** | AI アシスタント（メイン）。シェーダー・VFX・アセット制作をサポート |
 | **GitHub CLI** | Issue・PR・ブランチ操作を CLI から行う |
-| **UnityMCP** | Claude から Unity Editor を操作するための MCP サーバー |
+| **UnityMCP** | Claude から Unity Editor を操作・確認するための MCP サーバー |
 
-## 各ツールの関係
+## TA として Claude に何ができるか
 
-```
-ClaudeCode
-  ├── GitHub CLI  → Issue作成 / PR作成 / レビュー対応
-  └── UnityMCP    → UnityEditor の操作・確認
-```
+ClaudeCode は「コードを書く AI」というイメージが強いが、TA にとっても多くの場面で使える。
+
+| 作業 | Claude の貢献 |
+|---|---|
+| VFX Graph の制作 | エフェクトの実現方法を一緒に考える、.vfx ファイルを読んで分析する |
+| Shader Graph の制作 | Custom Function ノードの HLSL を書く、シェーダーの構成を提案する |
+| アセット管理 | 命名規則・フォルダ構成のルール化、Git での管理補助 |
+| シーン構築 | UnityMCP でシーンの状態を確認しながら作業する |
+| プラン作成 | 「どんな見た目にするか」を言語化してプランを整理する |
+
+## ファイル形式と Claude の相性
+
+| ファイル | 形式 | Claude が読める？ |
+|---|---|---|
+| `.shadergraph` | JSON | 読める（構造を分析できる） |
+| `.vfx` | JSON | 読める（ノード構成を分析できる） |
+| `.mat` | YAML | 読める（プロパティを確認できる） |
+| `.hlsl` / `.cginc` | テキスト | 読める・書ける |
+| `.png` / `.exr` | バイナリ | 直接編集はできない |
+| `.fbx` / `.obj` | バイナリ/テキスト | 直接編集はしない |
 
 ## 注意
 
 このワークフローは 2025/02 時点のものであり、今後変わる可能性がある。
-
-## 確認ポイント
-
-- [ ] ClaudeCode がインストールされているか
-- [ ] GitHub CLI (`gh`) がインストールされ、認証済みか
-- [ ] UnityMCP が Unity プロジェクトに導入されているか

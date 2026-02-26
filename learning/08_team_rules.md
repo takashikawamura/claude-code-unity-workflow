@@ -1,84 +1,111 @@
-# 08. チーム開発での Claude 動作の共通化（Rules / Skills / Hooks）
+# 08. Rules / Skills / Hooks（TA 向け）
 
 ## Rules
 
 ### 概要
 
-`CLAUDE.md` と同様に**自動読み込みされる**設定ファイル群。
-リポジトリの `.claude/rules/` ディレクトリに配置する。
+`.claude/rules/` に書いたルールは Claude が自動的に参照する。
+毎回指示しなくても Claude がプロジェクトのルールに従ってくれる。
 
-参考: https://code.claude.com/docs/ja/memory
+### TA が書くべき Rules の例
 
-### 共通化すべき内容
+#### `unity-asset-rules.md`
 
-| カテゴリ | 内容例 |
-|---|---|
-| アーキテクチャ | レイヤー構成、命名規則、依存関係のルール |
-| ヒエラルキールール | Unity Hierarchy の命名・構造ルール |
-| アセット命名規則 | スクリプト・シーン・Prefab の命名規則 |
-| コーディング規約 | スタイル、コメント規則、禁止パターン |
-| Git 運用ルール | ブランチ戦略、コミットメッセージ規則 |
+```markdown
+# Unity アセット管理ルール
+
+## 命名規則
+- VFX Graph: VFX_<カテゴリ>_<名前>
+- Shader Graph: SH_<カテゴリ>_<名前>
+- マテリアル: M_<シェーダー名>_<バリエーション>
+- テクスチャ: T_<対象>_<種別>  例: T_Grass_Albedo, T_Grass_Normal
+
+## フォルダ構成
+Assets/
+  VFX/
+    Effects/    ← VFX Graph アセット
+    Textures/   ← VFX 用テクスチャ
+  Shaders/
+    Characters/
+    Environment/
+    Effects/
+  Materials/
+    Characters/
+    Environment/
+
+## パフォーマンス規則
+- モバイル向け VFX: GPU パーティクル 500 以下
+- シェーダーの Instruction 数: 200 以下推奨
+```
+
+#### `shader-coding-rules.md`
+
+```markdown
+# シェーダーコーディング規則
+
+## HLSL Custom Function
+- 関数名は PascalCase
+- 入力変数名は in_ プレフィックス、出力は out_ プレフィックス
+- URP 互換コードで書く（Built-in RP 専用コードは使わない）
+
+## パフォーマンス
+- pow() より smoothstep() を優先
+- ループは静的展開を優先（[unroll] アトリビュート）
+- tex2D より SAMPLE_TEXTURE2D マクロを使う（URP 対応）
+```
 
 ---
 
 ## Skills
 
-### 概要
-
-定型作業をスキル（コマンド）として共通化する。
-参考: https://code.claude.com/docs/ja/skills
-
-### 主なスキル
+### TA 向けのスキル例
 
 | スキル | 用途 |
 |---|---|
 | `/create-issue` | Issue 作成 |
-| `/test-unity` | Unity TestRunner 実行 |
-| `/lint-unity` | Unity 特有ルールのチェック |
+| `/lint-unity` | Unity 特有ルールのチェック（命名規則・フォルダ構成） |
 | `/commit-push-pr` | Commit → Push → PR 自動化 |
 | `/pr-review-to-plan` | レビュー内容をプランに変換 |
 | `/reply-review` | レビューコメントへの返信 |
 
-コマンドとしても自然言語ベースでも使える。
+### TA 独自スキルの追加案
+
+```markdown
+# /check-assets スキル
+Assets/ フォルダを走査して、命名規則違反・
+孤立した .meta ファイル・未使用アセットを一覧で報告する
+```
 
 ---
 
 ## Hooks
 
-### 概要
-
-Claude やメンバーがやってはいけない操作への**ガードレール**。
-参考: https://code.claude.com/docs/ja/hooks
-
-### 代表的な Hook
+### TA に有効なガードレール例
 
 ```
-main / develop への直接 push を禁止
+- main / develop への直接 push を禁止
+- .meta ファイルなしのアセットコミットを検出して警告
+- 巨大ファイル（50MB 以上）のコミットを警告
 ```
-
-### メリット
-
-- 人間も Claude も間違える → 自動で止める
-- 致命的な操作を未然に防ぐ
 
 ---
 
-## .claude/ ディレクトリの構成例
+## .claude/ ディレクトリの構成例（TA 向け）
 
 ```
 .claude/
-  CLAUDE.md               プロジェクト全体のルール
+  CLAUDE.md                      プロジェクト全体のルール
   rules/
-    architecture.md       アーキテクチャルール
-    unity.md              Unity固有ルール
-    git.md                Git運用ルール
+    unity-asset-rules.md         アセット命名・フォルダ規則
+    shader-coding-rules.md       シェーダーコーディング規則
+    git-workflow.md              Git 運用ルール
   skills/
     create-issue.md
-    test-unity.md
+    lint-unity.md
     commit-push-pr.md
     pr-review-to-plan.md
     reply-review.md
 ```
 
 `.claude/` は常にアップデートして改善する（**ウナギのたれ**）。
-実装よりもこちらのアップデートに注力すると実装が安定する。
+アセット管理・シェーダー規則などを蓄積していくほど Claude の精度が上がる。
